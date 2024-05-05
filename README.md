@@ -1,11 +1,11 @@
 # Insta-Stalker
-Insta-Stalker is a program for automated stalking and tracking the instagram users stats(post, following, followes, bio etc.).
+Insta-Stalker is a program for automated stalking and tracking of Instagram users' stats (posts, following, followers, bio, etc.).
 
 ## Features:
 
-Program can track and store stats of users with MongoDB.
+The program can track and store stats of users with MongoDB.
 
-Receive webhook when an anomaly detected in stats.
+Receive a webhook when an anomaly is detected in stats.
 
 Run the program periodically and track stats with automation.
 
@@ -26,13 +26,13 @@ https://github.com/alidirza/insta-stalker/assets/38112259/8de75f78-3abe-4ef3-8ea
 </details>
 
 ### Webhook:
-Open discord web and create a new server.
+Open Discord's web application and create a new server.
 
-Open server setting and click Integrations.
+Open server settings and click on Integrations.
 
-Create a new webhook and copy the url.
+Create a new webhook and copy the URL.
 
-Paste the webhook url at code.
+Paste the webhook URL in the code.
 
 <details>
 <summary>
@@ -44,13 +44,15 @@ https://github.com/alidirza/insta-stalker/assets/38112259/fc218216-1b9a-420f-857
 </details>
 
 ### Instagram:
-Open instagram web and login.
+###### Note: Don't use your main account, you might get banned.
+###### Note: Session IDs change every time you log out or switch accounts.
+Open Instagram's web application and log in.
 
-Open web inspector and enter the Applications tab
+Open the web inspector and enter the Applications tab.
 
-Click cookies and find the instagram's session id.
+Click on cookies and find Instagram's session ID.
 
-Copy the session id and paste at code
+Copy the session ID and paste it in the code.
 
 <details>
 <summary>
@@ -64,19 +66,19 @@ https://github.com/alidirza/insta-stalker/assets/38112259/43d6e559-8494-43be-b97
 ### MongoDB:
 Deploy your database.
 
-Copy the password and press "Create Databse User".
+Copy the password and click on "Create Database User".
 
-Go to Network Acces under the Security tab.
+Go to Network Access under the Security tab.
 
-Press "Add IP Adress" then click "Allow Access From Anywhere" and then press confirm
+Click on "Add IP Address", then click "Allow Access From Anywhere" and confirm.
 
 Go to Database under the Deployment tab.
 
-Click Connect and select Drivers.
+Click on Connect and select Drivers.
 
-Copy the connection string and then change the "< password > " with your saved password.
+Copy the connection string and then replace "< password >" with your saved password.
 
-Paste at code
+Paste it in the code.
 
 <details>
 <summary>
