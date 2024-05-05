@@ -89,6 +89,20 @@ https://github.com/alidirza/insta-stalker/assets/38112259/1473d39f-e0e6-4d21-aeb
 
 </details>
 
+## Usage:
+Enter the usernames you want to track, save the file, and then type this code in the terminal.
+```shell
+node app.js
+```
+<details>
+<summary>
+Video
+</summary>
+  
+https://github.com/alidirza/insta-stalker/assets/38112259/fd2088bc-10d5-44a1-bc80-9ac5c42030b0
+
+</details>
+
 ## Dependencies:
 
 NodeJS
