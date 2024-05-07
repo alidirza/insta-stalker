@@ -12,6 +12,7 @@ const connect = require('./connect.js');
 const model = require('./model.js');
 const NodeStability = require('nodestability');
 
+let selection = 1;
 
 const options = {
   enable: true,
@@ -34,6 +35,7 @@ const askUser = () => {
     rl.question('Do you want to just run once or create a schedule? (1/2) ', (answer) => {
         if (answer === '1') {
             // Run the program once
+            selection = 1;
             main();
         } else if (answer === '2') {
             rl.question('Enter the number of hours between each run: ', (hours) => {
@@ -42,16 +44,21 @@ const askUser = () => {
                     console.log('Invalid input. Please enter a number greater than 0.17 (which is equivalent to 10 minutes).');
                     askUser();
                 } else {
+                    selection = 2;
                     const numericInterval = hours * 60 * 60 * 1000; // Convert hours to milliseconds
                     const intervalId = setInterval(main, numericInterval);
 
                     rl.question('Type "stop" to cancel the schedule: ', (stop) => {
                         if (stop.toLowerCase() === 'stop') {
+                            selection = 1;
                             clearInterval(intervalId);
                             console.log('Schedule canceled.');
                             process.exit(0); // Exit with success status
                         }
                         rl.close();
+                    });
+                    countdown (hours * 60 * 60).then(() => {
+                        console.log('Next run is starting...');
                     });
                 }
             });
@@ -127,18 +134,23 @@ async function getUserStats(i){
 
     if (full_name !== stats.full_name){
         sendWebhookMessage("anomaly",undefined,stats.username,"full name",full_name,stats.full_name)
+        await delay(500, 1000);
     }
     if(biography !== stats.biography){
         sendWebhookMessage("anomaly",undefined,stats.username,"biography",biography,stats.biography)
+        await delay(500, 1000);
     }
     if(following !== stats.following){
         sendWebhookMessage("anomaly",undefined,stats.username,"following",following,stats.following)
+        await delay(500, 1000);
     }
     if(followers !== stats.followers){
         sendWebhookMessage("anomaly",undefined,stats.username,"followers",followers,stats.followers)
+        await delay(500, 1000);
     }
     if(profile_pic !== stats.profile_pic){
         sendWebhookMessage("anomaly",undefined,stats.username,"profile pic",profile_pic,stats.profile_pic)
+        await delay(500, 1000);
     }
     await model.findOneAndUpdate({ username: stats.username }, {$set: { full_name: stats.full_name, biography: stats.biography, following: stats.following, followers: stats.followers, profile_pic: stats.profile_pic }}, { upsert:true}) 
 
@@ -151,8 +163,12 @@ async function main() {
     console.log(stats);
     sendWebhookMessage("stats", stats);
     if (i == users.length - 1) {
-      await delay(5000, 7000);
       console.log("Operation is finished");
+      if (selection === 2) {
+        console.log("Waiting for the next run...");
+      }else{
+        process.exit(0); // Exit with success status
+      }
     } else {
       await delay(60000, 120000);
     }
@@ -161,8 +177,21 @@ async function main() {
 
 function delay(min, max) {
     const delayTime = Math.random() * (max - min) + min;
-    console.log(`Waiting for ${(delayTime / 1000).toFixed(0)} seconds`);
-    return new Promise(resolve => setTimeout(resolve, delayTime));
+
+    return new Promise((resolve, reject) => {
+        let remainingTime = delayTime;
+        const interval = setInterval(() => {
+            remainingTime -= 1000;
+            if (remainingTime <= 0) {
+                clearInterval(interval);
+                resolve();
+            } else {
+                process.stdout.write("\b\b\b\b\b\b"); // Move the cursor back
+                const remainingTimeString = Math.round(remainingTime / 1000).toString().padStart(5, ' ');
+                process.stdout.write(`${remainingTimeString}s`);
+            }
+        }, 1000);
+    });
 }
 
 
@@ -193,4 +222,22 @@ function sendWebhookMessage(type, stats, username,content,old_data,new_data){
         .catch(error => {
             console.error(`Error: ${error}`);
         });
+}
+
+function countdown(seconds) {
+    console.log("\nNext run in:");
+    return new Promise((resolve, reject) => {
+        let remainingTime = seconds;
+        const interval = setInterval(() => {
+            remainingTime -= 1;
+            if (remainingTime <= 0) {
+                clearInterval(interval);
+                resolve();
+            } else {
+                process.stdout.write("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"); // Move the cursor back, there are lots of backspaces just to make sure it works
+                const remainingTimeString = Math.round(remainingTime).toString().padStart(5, ' ');
+                process.stdout.write(`${remainingTimeString}seconds`);
+            }
+        }, 1000);
+    });
 }
