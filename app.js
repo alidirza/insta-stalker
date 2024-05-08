@@ -25,6 +25,8 @@ const options = {
 const nodeStability = new NodeStability(options);
 
 const readline = require('readline');
+const { start } = require('repl');
+const { count } = require('console');
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -47,19 +49,23 @@ const askUser = () => {
                     selection = 2;
                     const numericInterval = hours * 60 * 60 * 1000; // Convert hours to milliseconds
                     const intervalId = setInterval(main, numericInterval);
-
-                    rl.question('Type "stop" to cancel the schedule: ', (stop) => {
-                        if (stop.toLowerCase() === 'stop') {
-                            selection = 1;
-                            clearInterval(intervalId);
-                            console.log('Schedule canceled.');
-                            process.exit(0); // Exit with success status
-                        }
+                    countdown("settime",hours * 60 * 60);
+                    countdown("start");
+                    rl.question('Type "stop" to cancel the schedule or "status" to check the status: ', function handleResponse(stop) {
+                    if (stop.toLowerCase() === 'stop') {
+                        selection = 1;
+                        clearInterval(intervalId);
+                        console.log('Schedule canceled.');
                         rl.close();
-                    });
-                    countdown (hours * 60 * 60).then(() => {
-                        console.log('Next run is starting...');
-                    });
+                        process.exit(0); // Exit with success status
+                    } else if (stop.toLowerCase() === 'status') {
+                        countdown("left",hours * 60 * 60);
+                        rl.question('Type "stop" to cancel the schedule or "status" to check the status: ', handleResponse);
+                    } else {
+                        console.log('Invalid command. Please type "stop" or "status".');
+                        rl.question('Type "stop" to cancel the schedule or "status" to check the status: ', handleResponse);
+                    }
+                });
                 }
             });
         } else {
@@ -149,7 +155,13 @@ async function getUserStats(i){
         await delay(500, 1000);
     }
     if(profile_pic !== stats.profile_pic){
-        sendWebhookMessage("anomaly",undefined,stats.username,"profile pic",profile_pic,stats.profile_pic)
+        const new_raw_profile_pic = profile_pic.split('.jpg');
+        const old_raw_profile_pic = stats.profile_pic.split('.jpg');
+        if(new_raw_profile_pic[0] !== old_raw_profile_pic[0]){
+            sendWebhookMessage("anomaly",undefined,stats.username,"profile pic",profile_pic,stats.profile_pic)
+        }else{
+            sendWebhookMessage("pp_id_changed")
+        }
         await delay(500, 1000);
     }
     await model.findOneAndUpdate({ username: stats.username }, {$set: { full_name: stats.full_name, biography: stats.biography, following: stats.following, followers: stats.followers, profile_pic: stats.profile_pic }}, { upsert:true}) 
@@ -158,6 +170,7 @@ async function getUserStats(i){
 }
 
 async function main() {
+  countdown ("start");
   for (let i = 0; i < users.length; i++) {
     const stats = await getUserStats(i);
     console.log(stats);
@@ -167,10 +180,11 @@ async function main() {
       if (selection === 2) {
         console.log("Waiting for the next run...");
       }else{
+        await delay(5000, 10000);
         process.exit(0); // Exit with success status
       }
     } else {
-      await delay(60000, 120000);
+      await delay(120000, 180000);
     }
   }
 }
@@ -208,6 +222,9 @@ function sendWebhookMessage(type, stats, username,content,old_data,new_data){
         case "spacer":
             content = `--------------`;
             break;
+        case "pp_id_changed":
+            content = `:warning: Profile Picture ID Changed. For more information check the readme file.`;
+            break;
         default:
             console.log("Invalid type");
     }
@@ -224,20 +241,25 @@ function sendWebhookMessage(type, stats, username,content,old_data,new_data){
         });
 }
 
-function countdown(seconds) {
-    console.log("\nNext run in:");
-    return new Promise((resolve, reject) => {
-        let remainingTime = seconds;
-        const interval = setInterval(() => {
-            remainingTime -= 1;
-            if (remainingTime <= 0) {
-                clearInterval(interval);
-                resolve();
-            } else {
-                process.stdout.write("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"); // Move the cursor back, there are lots of backspaces just to make sure it works
-                const remainingTimeString = Math.round(remainingTime).toString().padStart(5, ' ');
-                process.stdout.write(`${remainingTimeString}seconds`);
-            }
-        }, 1000);
-    });
+let intervalTime;
+let remainingTime;
+function countdown(action, seconds) {
+    if (action === "start") {
+        remainingTime = intervalTime;
+        return new Promise((resolve, reject) => {
+    const interval = setInterval(() => {
+        remainingTime -= 1;
+        if (remainingTime <= 1) {
+            clearInterval(interval);
+            resolve();
+        }
+    }, 1000);
+});
+    } else if (action === "left") {
+        console.log("\nNext run in: ");
+        console.log(`${Math.round(remainingTime)} seconds`);
+    }
+    else if (action === "settime") {
+        intervalTime = seconds;
+    }
 }
